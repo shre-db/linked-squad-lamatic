@@ -1,0 +1,861 @@
+triggerNode:
+  nodeId: triggerNode_1
+  nodeType: chatTriggerNode
+  nodeName: Chat Widget
+  values:
+    chat: ''
+    domains:
+      - '*'
+    chatConfig:
+      botName: LinkedSquad
+      imageUrl: ''
+      position: right
+      policyUrl: https://lamatic.ai/docs/legal/privacy-policy
+      displayMode: popup
+      placeholder: Compose your message
+      suggestions:
+        - Analyze Profile
+        - Analyze Job Fit
+        - Optimize Content
+      errorMessage: Oops! Something went wrong. Please try again.
+      hideBranding: false
+      primaryColor: '#f04e42'
+      headerBgColor: '#000000'
+      greetingMessage: >-
+        Hi, I am LinkedSquad a multi-agent AI who can help you with your
+        LinkedIn profile optimization.
+      headerTextColor: '#FFFFFF'
+      showEmojiButton: true
+      suggestionBgColor: '#f1f5f9'
+      showAdvancedColors: false
+      userMessageBgColor: '#FEF2F2'
+      agentMessageBgColor: '#f1f5f9'
+      suggestionTextColor: '#334155'
+      userMessageTextColor: '#d12323'
+      agentMessageTextColor: '#334155'
+  modes: {}
+nodes:
+  - nodeId: agentNode_319
+    nodeType: agentNode
+    nodeName: Supervisor
+    values:
+      tools: []
+      agents:
+        - name: ProfileAnalyzer
+          schema: |-
+            {
+              "type": "object",
+              "properties": {
+                "completeness_score": {
+                  "type": "number",
+                  "required": true,
+                  "description": "Profile completeness percentage (0-100)"
+                },
+                "key_issues": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Main issues found in the profile"
+                },
+                "top_recommendations": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Top 3 actionable recommendations"
+                }
+              }
+            }
+          description: This agent analyzes a given users profile
+        - name: ContentOptimizer
+          schema: |-
+            {
+              "type": "object",
+              "properties": {
+                "optimized_headline": {
+                  "type": "string",
+                  "required": true,
+                  "description": "Improved LinkedIn headline"
+                },
+                "optimized_summary": {
+                  "type": "string",
+                  "required": true,
+                  "description": "Improved LinkedIn summary"
+                },
+                "key_improvements": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "List of improvements made"
+                }
+              }
+            }
+          description: >-
+            This agent provides comprehensive content rewrite suggestions for a
+            users profile based on profile analysis.
+        - name: JobFitAnalyzer
+          schema: |-
+            {
+              "type": "object",
+              "properties": {
+                "fit_score": {
+                  "type": "number",
+                  "required": true,
+                  "description": "Job compatibility score (0-100)"
+                },
+                "missing_skills": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Skills required by job but missing from profile"
+                },
+                "improvement_actions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Top 3 actions to improve job fit"
+                }
+              }
+            }
+          description: This agent analyzes a users profile against a given job description.
+        - name: CareerGuide
+          schema: |-
+            {
+              "type": "object",
+              "properties": {
+                "career_advice": {
+                  "type": "string",
+                  "required": true,
+                  "description": "Personalized career guidance"
+                },
+                "skill_priorities": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Top skills to develop"
+                },
+                "next_steps": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Immediate actionable next steps"
+                }
+              }
+            }
+          description: >-
+            This agent provides personalized career guidance to users based on
+            profile analysis.
+      prompts:
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7b
+          role: system
+          content: >-
+            You are the LinkedSquad manager responsible for intelligent routing
+            to specialist agents: ProfileAnalyzer, ContentOptimizer,
+            JobFitAnalyzer, and CareerGuide.
+
+
+            **CRITICAL: Think step-by-step before routing. Follow this
+            process:**
+
+
+            1. **ANALYZE USER INTENT**: What is the user actually asking for?
+
+            2. **VALIDATE DATA AVAILABILITY**: Does the user's message contain
+            the necessary data for their request?
+
+            3. **CHECK CONVERSATION HISTORY**: Is there relevant context from
+            previous interactions?
+
+            4. **DETERMINE ROUTING**: Based on analysis, which agent (if any)
+            should handle this?
+
+
+            **ROUTING RULES WITH VALIDATION:**
+
+
+            **ProfileAnalyzer**: Route ONLY if:
+
+
+            * User requests profile analysis/feedback AND
+
+            * User has provided actual profile data (headline, summary,
+            experience, skills, etc.) OR
+
+            * Previous conversation contains profile data
+
+            * If no profile data: Provide helpful guidance instead
+
+
+            **ContentOptimizer**: Route ONLY if:
+
+
+            * User requests content optimization/rewriting AND
+
+            * Profile data exists in current message or conversation history OR
+
+            * ProfileAnalyzer results exist in conversation history
+
+            * If no content to optimize: Provide helpful guidance instead
+
+
+            **JobFitAnalyzer**: Route ONLY if:
+
+
+            * User requests job fit analysis AND
+
+            * Both profile data AND job description are available
+
+            * If missing either: Provide helpful guidance instead
+
+
+            **CareerGuide**: Route ONLY if:
+
+
+            * User requests career guidance AND
+
+            * Some profile context exists (from current message or history)
+
+            * If no context: Provide helpful guidance instead
+
+
+            **RESPONSE FORMAT:**
+
+
+            * If routing to agent: Respond with ONLY the agent name
+
+            * If insufficient data: Provide a helpful, friendly response
+            explaining what information is needed, with specific examples
+
+            * Never hallucinate or assume data that wasn't provided
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7d
+          role: user
+          content: >-
+            **USER MESSAGE:** {{triggerNode_1.output.chatMessage}}
+
+
+            **REASONING PROCESS (think step by step):**
+
+
+            1. **Intent Analysis**: What is the user asking for?  
+               * Profile analysis?  
+               * Content optimization?  
+               * Job fit analysis?  
+               * Career guidance?  
+               * General question/greeting?
+            2. **Data Validation**:  
+               * Does the current message contain profile data (headline, summary, experience, skills)?  
+               * Is there a job description provided?  
+               * What relevant context exists in conversation history?
+            3. **Routing Decision**:  
+               * If sufficient data exists for the requested service → Route to appropriate agent  
+               * If insufficient data → Provide helpful guidance on what's needed
+
+            **GUIDANCE TEMPLATES FOR INSUFFICIENT DATA:**
+
+
+            **For Profile Analysis:** "I'd be happy to analyze your LinkedIn
+            profile! Please share your profile information including:
+
+
+            * Your current headline
+
+            * About/Summary section
+
+            * Work experience details
+
+            * Skills list
+
+            * Education background
+
+
+            Copy and paste this information, and I'll provide a detailed
+            analysis with completeness score and recommendations!"
+
+
+            **For Content Optimization:** "I'd love to help optimize your
+            LinkedIn content! I need either: • Your current profile information
+            (headline, summary, etc.), OR • Previous profile analysis results
+            from our conversation
+
+
+            Please share your current content that you'd like me to improve!"
+
+
+            **For Job Fit Analysis:** "I can help analyze how well you match a
+            job! I need both:
+
+
+            * Your LinkedIn profile information, AND
+
+            * The job description (copy and paste the full description - links
+            won't work)
+
+
+            Please provide both and I'll give you a compatibility score with
+            improvement suggestions!"
+
+
+            **For Career Guidance:** "I'd be happy to provide career guidance!
+            Please share some information about your professional background so
+            I can give personalized advice."
+
+
+            **Important Notes:**
+
+
+            * External links won't work due to LinkedIn's anti-scraping policies
+
+            * For job fit analysis, users must copy & paste job descriptions
+
+            * Never route to an agent without proper data validation
+
+            * When providing guidance, be encouraging and specific
+
+
+            **Your Response:** [Agent Name] OR [Helpful guidance message]
+      messages: '{{triggerNode_1.output.chatHistory}}'
+      _configId: PLACEHOLDER_CONFIG_ID
+      _variables: []
+      connectedTo: agentLoopEndNode_994
+      maxIterations: 10
+      generativeModelName:
+        type: generator/text
+        model_name: gemini/gemini-2.5-flash
+        credentialId: PLACEHOLDER_CREDENTIAL_ID
+        provider_name: gemini
+        credential_name: PLACEHOLDER_CREDENTIAL_NAME
+    needs:
+      - triggerNode_1
+      - triggerNode_1
+      - triggerNode_1
+      - triggerNode_1
+      - agentLoopEndNode_994
+      - agentLoopEndNode_994
+      - agentLoopEndNode_994
+      - agentLoopEndNode_994
+      - agentLoopEndNode_994
+      - agentLoopEndNode_994
+      - agentLoopEndNode_994
+      - agentLoopEndNode_994
+      - agentLoopEndNode_994
+    connections:
+      - condition: ProfileAnalyzer
+        value: InstructorLLMNode_911
+        type: conditionEdge
+        invisible: false
+      - condition: ContentOptimizer
+        value: InstructorLLMNode_866
+        type: conditionEdge
+        invisible: false
+      - condition: JobFitAnalyzer
+        value: InstructorLLMNode_533
+        type: conditionEdge
+        invisible: false
+      - condition: CareerGuide
+        value: InstructorLLMNode_163
+        type: conditionEdge
+        invisible: false
+      - condition: Agent Loop End
+        value: agentLoopEndNode_994
+        type: agentLoopEdge
+        invisible: true
+  - nodeId: agentLoopEndNode_994
+    nodeType: agentLoopEndNode
+    nodeName: Agent Loop End
+    values:
+      connectedTo: agentNode_319
+    needs:
+      - InstructorLLMNode_911
+      - InstructorLLMNode_866
+      - InstructorLLMNode_533
+      - InstructorLLMNode_163
+      - agentNode_319
+    connections:
+      - condition: Agent Loop End
+        value: agentNode_319
+        type: agentLoopEdge
+        invisible: false
+      - condition: Agent Loop End
+        value: agentNode_319
+        type: agentLoopEdge
+        invisible: false
+      - condition: Agent Loop End
+        value: agentNode_319
+        type: agentLoopEdge
+        invisible: false
+      - condition: Agent Loop End
+        value: agentNode_319
+        type: agentLoopEdge
+        invisible: false
+      - condition: Agent Loop End
+        value: agentNode_319
+        type: agentLoopEdge
+        invisible: false
+      - condition: Agent Loop End
+        value: agentNode_319
+        type: agentLoopEdge
+        invisible: false
+      - condition: Agent Loop End
+        value: agentNode_319
+        type: agentLoopEdge
+        invisible: false
+      - condition: Agent Loop End
+        value: agentNode_319
+        type: agentLoopEdge
+        invisible: false
+      - condition: Agent Loop End
+        value: agentNode_319
+        type: agentLoopEdge
+        invisible: false
+  - nodeId: InstructorLLMNode_911
+    nodeType: InstructorLLMNode
+    nodeName: ProfileAnalyzer
+    values:
+      tools: []
+      schema: |-
+        {
+          "type": "object",
+          "properties": {
+            "completeness_score": {
+              "type": "number",
+              "required": true,
+              "description": "Profile completeness percentage (0-100)"
+            },
+            "key_issues": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Main issues found in the profile"
+            },
+            "top_recommendations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Top 3 actionable recommendations"
+            }
+          }
+        }
+      prompts:
+        - id: 64abb4e8-9722-4e9a-b931-3d29bac8b608
+          role: system
+          content: >-
+            You are ProfileAnalyzer, a specialist LinkedIn profile analysis
+            agent in the LinkedSquad multi-agent system. Your role is to
+            evaluate profile completeness and provide actionable improvement
+            recommendations.
+
+
+            **Your Expertise:**
+
+            - Profile completeness scoring (0-100%)
+
+            - Identifying missing or weak profile sections
+
+            - Providing specific, actionable recommendations
+
+            - Understanding LinkedIn best practices
+
+
+            **Output Format:**
+
+            Always provide structured analysis with exact metrics and clear
+            recommendations.
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7d
+          role: user
+          content: >-
+            User Request: {{triggerNode_1.output.chatMessage}}
+
+
+            **VALIDATION STEP:** First, check if the user has provided actual
+            LinkedIn profile data (headline, summary, experience, skills,
+            education, etc.).
+
+
+            **If profile data is provided:** Analyze and provide:
+
+
+            1. Completeness score (0-100%)
+
+            2. Key issues found (be specific)
+
+            3. Top 3 actionable recommendations
+
+
+            **Example Analysis:** "Completeness Score: 75%
+
+
+            Key Issues:
+
+
+            * Missing skills section
+
+            * Generic headline lacks specialization
+
+            * Summary doesn't include quantified achievements
+
+
+            Top Recommendations:
+
+
+            1. Add 10-15 relevant technical skills
+
+            2. Rewrite headline to include your specialization (e.g.,
+            'Full-Stack Developer specializing in React & Node.js')
+
+            3. Include 2-3 quantified achievements in your summary"
+
+
+            **If NO profile data is provided:** "I'd be happy to analyze your
+            LinkedIn profile! Please provide your profile information including:
+
+
+            * Current headline
+
+            * Summary/About section
+
+            * Work experience
+
+            * Skills
+
+            * Education
+
+            * Any other relevant profile sections
+
+
+            Once you share this information, I can give you a detailed analysis
+            with completeness score and improvement recommendations."
+      memories: '[]'
+      messages: '{{triggerNode_1.output.chatHistory}}'
+      attachments: ''
+      generativeModelName:
+        type: generator/text
+        model_name: gemini/gemini-2.5-flash
+        credentialId: PLACEHOLDER_CREDENTIAL_ID
+        provider_name: gemini
+        credential_name: PLACEHOLDER_CREDENTIAL_NAME
+    needs:
+      - agentNode_319
+  - nodeId: InstructorLLMNode_866
+    nodeType: InstructorLLMNode
+    nodeName: ContentOptimizer
+    values:
+      tools: []
+      schema: |-
+        {
+          "type": "object",
+          "properties": {
+            "optimized_headline": {
+              "type": "string",
+              "required": true,
+              "description": "Improved LinkedIn headline"
+            },
+            "optimized_summary": {
+              "type": "string",
+              "required": true,
+              "description": "Improved LinkedIn summary"
+            },
+            "key_improvements": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of improvements made"
+            }
+          }
+        }
+      prompts:
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7b
+          role: system
+          content: >-
+            You are ContentOptimizer, a specialist LinkedIn content optimization
+            agent in the LinkedSquad multi-agent system. Your role is to rewrite
+            and enhance LinkedIn profile content for maximum impact and
+            visibility.
+
+
+            **Your Expertise:**
+
+            - Writing compelling, keyword-optimized headlines
+
+            - Crafting engaging professional summaries
+
+            - Improving content readability and appeal
+
+            - Incorporating industry best practices
+
+
+            **Best Practices:**
+
+            - Use action verbs and specific achievements
+
+            - Include relevant keywords for searchability
+
+            - Write in first person for summaries
+
+            - Quantify accomplishments when possible
+
+
+            IMPORTANT: Always check the conversation history for previous
+            ProfileAnalyzer results. Use the completeness score, key issues, and
+            recommendations from ProfileAnalyzer to inform your content
+            optimization suggestions.
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7d
+          role: user
+          content: >-
+            User Request: {{triggerNode_1.output.chatMessage}}
+
+
+            **CONTEXT CHECKING:**
+
+
+            1. Look for ProfileAnalyzer results in conversation history
+
+            2. Check if user provided profile data in current message
+
+
+            **If context is available, provide optimized content:**
+
+
+            **Example Output:** "Optimized Headline: 'Senior Full-Stack
+            Developer | React & Node.js Expert | Building Scalable Web
+            Applications for 50K+ Users'
+
+
+            Optimized Summary: 'Passionate Full-Stack Developer with 5+ years of
+            experience building scalable web applications. Led development of
+            e-commerce platform serving 50K+ monthly users, resulting in 30%
+            increase in conversion rates. Expertise in React, Node.js, and AWS.
+            Proven track record of delivering projects 20% ahead of schedule
+            while maintaining 99.9% uptime...'
+
+
+            Key Improvements:
+
+
+            * Added specific metrics (5+ years, 50K+ users, 30% increase)
+
+            * Included relevant keywords (React, Node.js, AWS)
+
+            * Started with compelling value proposition
+
+            * Used active voice and quantified achievements"
+
+
+            **If NO context available:** "To optimize your LinkedIn content, I
+            need either:
+
+
+            1. Your current profile information, OR
+
+            2. A profile analysis (please ask the ProfileAnalyzer to analyze
+            your profile first)
+
+
+            Please provide your current headline, summary, and other profile
+            sections you'd like me to optimize."
+      memories: '[]'
+      messages: '{{triggerNode_1.output.chatHistory}}'
+      attachments: ''
+      generativeModelName:
+        type: generator/text
+        model_name: gemini/gemini-2.5-flash
+        credentialId: PLACEHOLDER_CREDENTIAL_ID
+        provider_name: gemini
+        credential_name: PLACEHOLDER_CREDENTIAL_NAME
+    needs:
+      - agentNode_319
+  - nodeId: InstructorLLMNode_533
+    nodeType: InstructorLLMNode
+    nodeName: JobFitAnalyzer
+    values:
+      tools: []
+      schema: |-
+        {
+          "type": "object",
+          "properties": {
+            "fit_score": {
+              "type": "number",
+              "required": true,
+              "description": "Job compatibility score (0-100)"
+            },
+            "missing_skills": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Skills required by job but missing from profile"
+            },
+            "improvement_actions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Top 3 actions to improve job fit"
+            }
+          }
+        }
+      prompts:
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7b
+          role: system
+          content: >-
+            You are a specialist agent in a multiagent AI setup called
+            "LinkedSquad". Your name is "JobFitAnalyzer" and you are responsible
+            for evaluating a given user profile against a provided job
+            description. IMPORTANT: Check if a job description is provided in
+            the user's message. If no job description is found, politely ask the
+            user to provide one (copy and paste only, links won't work). Use
+            conversation history for context about the user's profile and any
+            previous analysis results.
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7d
+          role: user
+          content: >-
+            Evaluate job fit and provide:
+
+
+            1\. Compatibility score (0-100%)
+
+
+            2\. Missing skills from the job requirements
+
+
+            3\. Top 3 actions to improve candidacy
+
+
+            User Profile Data: {{triggerNode_1.output.chatMessage}}
+
+
+            Job Description: Extract job description from the user's message or
+            use context from chat history
+
+
+            Note: If no job description is provided in the current message,
+            request the user to provide one.
+      memories: '[]'
+      messages: '{{triggerNode_1.output.chatHistory}}'
+      attachments: ''
+      generativeModelName:
+        type: generator/text
+        model_name: gemini/gemini-2.5-flash
+        credentialId: PLACEHOLDER_CREDENTIAL_ID
+        provider_name: gemini
+        credential_name: PLACEHOLDER_CREDENTIAL_NAME
+    needs:
+      - agentNode_319
+  - nodeId: InstructorLLMNode_163
+    nodeType: InstructorLLMNode
+    nodeName: CareerGuide
+    values:
+      tools: []
+      schema: |-
+        {
+          "type": "object",
+          "properties": {
+            "career_advice": {
+              "type": "string",
+              "required": true,
+              "description": "Personalized career guidance"
+            },
+            "skill_priorities": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Top skills to develop"
+            },
+            "next_steps": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Immediate actionable next steps"
+            }
+          }
+        }
+      prompts:
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7b
+          role: system
+          content: >-
+            You are a specialist agent in a multiagent AI setup called
+            "LinkedSquad". Your name is "CareerGuide" and you are responsible
+            for providing personalized career guidance to the user based their
+            profile data, profile analysis data, and career goals. 
+
+
+            IMPORTANT: Review the entire conversation history to gather context
+            from:
+
+
+            * ProfileAnalyzer results (completeness scores, issues,
+            recommendations)
+
+            * ContentOptimizer suggestions (optimized content, improvements)
+
+            * JobFitAnalyzer results (compatibility scores, missing skills)
+
+            * User's stated career goals and aspirations Synthesize all this
+            information to provide comprehensive career guidance.
+        - id: 187c2f4b-c23d-4545-abef-73dc897d6b7d
+          role: user
+          content: >-
+            Provide career guidance including:
+
+
+            1\. Personalized career advice
+
+
+            2\. Top skills to develop
+
+
+            3\. Immediate next steps to take
+
+
+            Current User Message: {{triggerNode_1.output.chatMessage}}
+
+
+            Profile Analysis: Use context from chat history to access previous
+            ProfileAnalyzer results
+
+
+            Content Optimization: Use context from chat history to access
+            previous ContentOptimizer results
+
+
+            Job Fit Analysis: Use context from chat history to access previous
+            JobFitAnalyzer results (if available)
+
+
+            Career Goals: Extract from user's current message or conversation
+            history
+      memories: '[]'
+      messages: '{{triggerNode_1.output.chatHistory}}'
+      attachments: ''
+      generativeModelName:
+        type: generator/text
+        model_name: gemini/gemini-2.5-flash
+        credentialId: PLACEHOLDER_CREDENTIAL_ID
+        provider_name: gemini
+        credential_name: PLACEHOLDER_CREDENTIAL_NAME
+    needs:
+      - agentNode_319
+responseNode:
+  nodeId: responseNode_triggerNode_1
+  nodeType: chatResponseNode
+  nodeName: Chat Response
+  values:
+    content: '{{agentLoopEndNode_994.output.finalResponse}}'
+    references: ''
+    webhookUrl: ''
+    webhookHeaders: ''
+  needs:
+    - agentLoopEndNode_994
+    - agentLoopEndNode_994
+    - agentLoopEndNode_994
+    - agentLoopEndNode_994

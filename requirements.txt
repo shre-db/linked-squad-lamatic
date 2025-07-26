@@ -1,0 +1,3 @@
+# Dependencies for Lamatic config updater script
+python-dotenv==1.0.0
+PyYAML==6.0.1
